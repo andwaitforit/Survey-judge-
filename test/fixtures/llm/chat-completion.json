@@ -1,0 +1,13 @@
+{
+  "id": "chatcmpl-fixture",
+  "object": "chat.completion",
+  "model": "fixture-small-llm",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": { "role": "assistant", "content": "```json\n{\"score\": 0.82, \"confidence\": 0.74}\n```" }
+    }
+  ],
+  "usage": { "prompt_tokens": 180, "completion_tokens": 14, "total_tokens": 194 }
+}

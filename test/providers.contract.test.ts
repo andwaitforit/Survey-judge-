@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { CHECK_NAMES, type CheckName } from '../src/policy/types.js';
 import { runChecks } from '../src/providers/run.js';
 import type { CheckRequest } from '../src/providers/types.js';
-import { stubHarness, type ProviderHarness } from './helpers/provider-harness.js';
+import { ALL_HARNESSES } from './helpers/provider-harness.js';
 
-export const HARNESSES: ProviderHarness[] = [stubHarness];
+const HARNESSES = ALL_HARNESSES;
 
 const req = (checks: CheckName[] = [...CHECK_NAMES]): CheckRequest => ({
   checks,
