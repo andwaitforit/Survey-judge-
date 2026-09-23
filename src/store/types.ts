@@ -40,6 +40,8 @@ export type OutcomeResult = 'recorded' | 'not_found' | 'already_set';
 export interface DecisionLog {
   append(rec: DecisionRecord): Promise<void>;
   sessionState(customerId: string, studyId: string, sessionId: string, questionId: string): Promise<SessionState>;
+  /** Most recent answers to this question from other sessions: the peer sample for the duplicate check. */
+  recentAnswers(customerId: string, studyId: string, questionId: string, excludeSessionId: string, limit: number): Promise<string[]>;
   /** Oldest first. */
   list(customerId: string, studyId: string, opts?: { limit?: number }): Promise<DecisionRecord[]>;
   /** The only mutation the log allows: set finalOutcome once. */

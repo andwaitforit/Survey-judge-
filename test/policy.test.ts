@@ -43,8 +43,11 @@ describe('parseStudyConfig', () => {
     expect(cfg.mode).toBe('shadow');
   });
 
-  it('fills sensible defaults', () => {
+  it('fills sensible defaults: the PRODUCT.md example thresholds, so an omitted block still acts', () => {
     const cfg = parseStudyConfig({ studyId: 's1' });
+    expect(cfg.thresholds.clarify).toEqual({ relevance: 0.55, specificity: 0.45 });
+    expect(cfg.thresholds.flag).toEqual({ relevance: 0.3, gibberish: 0.7, duplicate: 0.85 });
+    expect(parseStudyConfig({ studyId: 's1', thresholds: { flag: { gibberish: 0.8 } } }).thresholds.clarify.relevance).toBe(0.55);
     expect(cfg.thresholds.replace.requireChecks).toBeGreaterThanOrEqual(2);
     expect(cfg.thresholds.replace.minConfidence).toBe(0.9);
     expect(cfg.maxClarifyPerSession).toBe(2);

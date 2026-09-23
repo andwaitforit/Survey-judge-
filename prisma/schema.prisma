@@ -73,5 +73,6 @@ model Decision {
   createdAt         DateTime @default(now())
 
   @@index([customerId, studyId, createdAt])
-  @@index([studyId, sessionId])
+  @@index([customerId, studyId, sessionId])
+  @@index([customerId, studyId, questionId, createdAt])
 }

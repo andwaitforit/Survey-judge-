@@ -8,14 +8,7 @@ import { runEval } from './harness.js';
 import { renderReport } from './report.js';
 
 /** The PRODUCT.md example thresholds. Used when no --config is given. */
-export const DEFAULT_EVAL_CONFIG: StudyConfig = parseStudyConfig({
-  studyId: 'eval-default',
-  thresholds: {
-    clarify: { relevance: 0.55, specificity: 0.45 },
-    flag: { relevance: 0.3, gibberish: 0.7, duplicate: 0.85 },
-    replace: { requireChecks: 2, minConfidence: 0.9 },
-  },
-});
+export const DEFAULT_EVAL_CONFIG: StudyConfig = parseStudyConfig({ studyId: 'eval-default' });
 
 /** Accept `fixtures/x.jsonl` as shorthand for `test/fixtures/x.jsonl` (the path CLAUDE.md uses). */
 function resolveDataset(p: string): string {

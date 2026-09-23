@@ -51,6 +51,12 @@ export class MemoryStore implements Store {
         questionAlreadyClarified: clarifies.some((r) => r.questionId === questionId),
       };
     },
+    recentAnswers: async (customerId: string, studyId: string, questionId: string, excludeSessionId: string, limit: number): Promise<string[]> =>
+      this.rows
+        .filter((r) => r.customerId === customerId && r.studyId === studyId && r.questionId === questionId && r.sessionId !== excludeSessionId)
+        .slice(-limit)
+        .reverse()
+        .map((r) => r.answerText),
     list: async (customerId: string, studyId: string, opts: { limit?: number } = {}): Promise<DecisionRecord[]> =>
       this.rows
         .filter((r) => r.customerId === customerId && r.studyId === studyId)

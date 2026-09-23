@@ -84,6 +84,15 @@ export class PrismaStore implements Store {
         questionAlreadyClarified: rows.some((r) => r.questionId === questionId),
       };
     },
+    recentAnswers: async (customerId: string, studyId: string, questionId: string, excludeSessionId: string, limit: number): Promise<string[]> => {
+      const rows = await this.db.decision.findMany({
+        where: { customerId, studyId, questionId, sessionId: { not: excludeSessionId } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: { answerText: true },
+      });
+      return rows.map((r) => r.answerText);
+    },
     list: async (customerId: string, studyId: string, opts: { limit?: number } = {}): Promise<DecisionRecord[]> => {
       const rows = await this.db.decision.findMany({
         where: { customerId, studyId },

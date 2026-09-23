@@ -121,6 +121,16 @@ describe.each(harnesses)('Store contract: $name', (h) => {
     expect((await ctx.store.decisions.sessionState('c1', 's1', 'R_2', 'Q1')).clarifiesUsedInSession).toBe(0);
   });
 
+  it('returns recent peer answers to the same question from other sessions, newest first', async () => {
+    const t = (s: number) => new Date(Date.UTC(2026, 8, 23, 0, 0, s));
+    await ctx.store.decisions.append(rec({ sessionId: 'R_a', answerText: 'first', createdAt: t(1) }));
+    await ctx.store.decisions.append(rec({ sessionId: 'R_b', answerText: 'second', createdAt: t(2) }));
+    await ctx.store.decisions.append(rec({ sessionId: 'R_me', answerText: 'mine', createdAt: t(3) }));
+    await ctx.store.decisions.append(rec({ sessionId: 'R_c', questionId: 'Q9', answerText: 'other q', createdAt: t(4) }));
+    expect(await ctx.store.decisions.recentAnswers('c1', 's1', 'Q1', 'R_me', 10)).toEqual(['second', 'first']);
+    expect(await ctx.store.decisions.recentAnswers('c1', 's1', 'Q1', 'R_me', 1)).toEqual(['second']);
+  });
+
   it('sets finalOutcome exactly once, and only for the owning customer', async () => {
     const r = rec();
     await ctx.store.decisions.append(r);
