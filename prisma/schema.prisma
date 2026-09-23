@@ -1,0 +1,77 @@
+// Postgres schema. Decisions are append-only: see migration.sql for the trigger that enforces it.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Customer {
+  id            String   @id
+  name          String
+  /// Decision log retention in days. 90-day default (ARCHITECTURE.md → Privacy).
+  retentionDays Int      @default(90)
+  createdAt     DateTime @default(now())
+
+  apiKeys ApiKey[]
+  studies StudyConfigVersion[]
+}
+
+model ApiKey {
+  id         String    @id
+  customerId String
+  /// sha256 of the raw key. The raw key is never stored.
+  keyHash    String    @unique
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+/// Every config change is a new row. Decisions reference (studyId, version).
+model StudyConfigVersion {
+  id         String   @id
+  customerId String
+  studyId    String
+  version    Int
+  config     Json
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@unique([customerId, studyId, version])
+}
+
+/// The decision log: the company's core asset. Append-only. Only finalOutcome may be set later, once.
+model Decision {
+  decisionId        String   @id
+  customerId        String
+  studyId           String
+  sessionId         String
+  questionId        String
+  /// Stored for evaluation. The only respondent-authored content we keep.
+  answerText        String
+  provider          String
+  modelVersion      String
+  configVersion     Int
+  checks            Json
+  confidence        Float
+  /// Action returned to the caller (always keep in shadow mode).
+  action            String
+  /// Action the policy recommended (what enforce mode would have returned).
+  recommendedAction String
+  mode              String
+  latencyMs         Int
+  /// True when this decision is the re-score of an answer that was sent back for clarification.
+  clarified         Boolean
+  providerError     String?
+  missingChecks     String[]
+  finalOutcome      String?
+  createdAt         DateTime @default(now())
+
+  @@index([customerId, studyId, createdAt])
+  @@index([studyId, sessionId])
+}
