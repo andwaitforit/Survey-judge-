@@ -1,0 +1,57 @@
+dataset test/fixtures/labeled-sample.jsonl
+Eval report: 69 labelled answers
+provider stub (stub-heuristics-1), config eval-default, policy in enforce mode
+provider errors/empty: 0   latency ms p50 2 p95 6 max 10
+
+Label distribution
+  keep 28   clarify 14   flag 14   replace 13
+
+Confusion matrix (rows = label, cols = predicted)
+                keep  clarify     flag  replace
+  keep            28        0        0        0
+  clarify          0       14        0        0
+  flag             7        2        5        0
+  replace          1        0        9        3
+
+At policy output (no extra confidence threshold)
+  any intervention  precision 100.0%  recall  80.5%  FPR   0.0%  (tp 33 fp 0 fn 8 tn 28)
+  clarify           precision  87.5%  recall 100.0%  FPR   3.6%  (tp 14 fp 2 fn 0 tn 53)
+  flag              precision  35.7%  recall  35.7%  FPR  16.4%  (tp 5 fp 9 fn 9 tn 46)
+  replace           precision 100.0%  recall  23.1%  FPR   0.0%  (tp 3 fp 0 fn 10 tn 56)
+  keep-labelled answers recommended for replace: 0
+
+Threshold sweep (interventions with decision confidence < t are dropped to keep)
+            t   coverage   int.prec int.recall    int.FPR  flag.prec   flag.rec  repl.prec   repl.rec   repl.FPR   meanConf  calib.gap  keep→repl
+         0.00      47.8%     100.0%      80.5%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.888      0.221          0
+         0.50      47.8%     100.0%      80.5%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.888      0.221          0
+         0.60      47.8%     100.0%      80.5%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.888      0.221          0
+         0.70      44.9%     100.0%      75.6%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.901      0.255          0
+         0.80      39.1%     100.0%      65.9%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.926      0.260          0
+         0.90      24.6%     100.0%      41.5%       0.0%      35.7%      35.7%     100.0%      23.1%       0.0%      0.972      0.502          0
+  calib.gap = mean confidence − exact-action accuracy of retained interventions (> 0 is overconfident)
+
+Calibration (decision confidence vs exact-action accuracy), ECE 0.139
+           bin           n    meanConf    accuracy
+       0.0-0.2           0         n/a         n/a
+       0.2-0.4           0         n/a         n/a
+       0.4-0.6           0         n/a         n/a
+       0.6-0.8           9       0.741       0.444
+       0.8-1.0          60       0.883       0.767
+
+Bias guardrail (predicted action rates by respondent attribute; warn if replace rate > 1.5x overall)
+  overall                    n   69  keep  52.2%  clarify  23.2%  flag  20.3%  replace   4.3%
+  ageBand=18-24              n   21  keep  19.0%  clarify  14.3%  flag  52.4%  replace  14.3%
+  ageBand=25-34              n   23  keep  56.5%  clarify  30.4%  flag  13.0%  replace   0.0%
+  ageBand=35-44              n   12  keep  75.0%  clarify  25.0%  flag   0.0%  replace   0.0%  (low n)
+  ageBand=45-54              n    8  keep  75.0%  clarify  25.0%  flag   0.0%  replace   0.0%  (low n)
+  ageBand=55-64              n    5  keep  80.0%  clarify  20.0%  flag   0.0%  replace   0.0%  (low n)
+  languageGroup=en           n   58  keep  46.6%  clarify  24.1%  flag  24.1%  replace   5.2%
+  languageGroup=en-l2        n    5  keep  80.0%  clarify  20.0%  flag   0.0%  replace   0.0%  (low n)
+  languageGroup=es           n    6  keep  83.3%  clarify  16.7%  flag   0.0%  replace   0.0%  (low n)
+  region=east                n   14  keep  57.1%  clarify  28.6%  flag   7.1%  replace   7.1%  (low n)
+  region=north               n   21  keep  47.6%  clarify  23.8%  flag  19.0%  replace   9.5%
+  region=south               n   19  keep  52.6%  clarify  21.1%  flag  26.3%  replace   0.0%  (low n)
+  region=west                n   15  keep  53.3%  clarify  20.0%  flag  26.7%  replace   0.0%  (low n)
+  WARNING ageBand=18-24: replace rate 14.3% is 3.29x overall 4.3% (n 21)
+  WARNING region=east: replace rate 7.1% is 1.64x overall 4.3% (n 14)
+  WARNING region=north: replace rate 9.5% is 2.19x overall 4.3% (n 21)
