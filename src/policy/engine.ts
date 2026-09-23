@@ -1,5 +1,6 @@
 import type { StudyConfig } from './config.js';
 import {
+  CHECK_FAMILY,
   CHECK_POLARITY,
   type Action,
   type CheckName,
@@ -115,7 +116,8 @@ export function decide(
 
   let recommendedAction: Action;
   let deciding: Trigger[];
-  if (replaceTriggers.length >= thresholds.replace.requireChecks) {
+  const replaceFamilies = new Set(replaceTriggers.map((t) => CHECK_FAMILY[t.check]));
+  if (replaceFamilies.size >= thresholds.replace.requireChecks) {
     // A re-scored answer is capped at flag.
     recommendedAction = ctx.isRescore ? 'flag' : 'replace';
     deciding = replaceTriggers;

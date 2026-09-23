@@ -34,6 +34,23 @@ export const CHECK_POLARITY: Record<CheckName, 'quality' | 'risk'> = {
   duplicate: 'risk',
 };
 
+/**
+ * Evidence families. `replace` needs agreement from `requireChecks` *independent* checks. Checks
+ * that read the same answer text for the same kind of weakness are correlated: keyboard mash trips
+ * gibberish, relevance, coherence and effort together. So agreement is counted per family.
+ */
+export const CHECK_FAMILY: Record<CheckName, 'content' | 'consistency' | 'duplicate' | 'boilerplate'> = {
+  relevance: 'content',
+  specificity: 'content',
+  coherence: 'content',
+  gibberish: 'content',
+  effort: 'content',
+  contradiction: 'consistency',
+  duplicate: 'duplicate',
+  boilerplate: 'boilerplate',
+};
+export const FAMILY_COUNT = new Set(Object.values(CHECK_FAMILY)).size;
+
 export interface CheckResult {
   check: CheckName;
   /** 0..1 */

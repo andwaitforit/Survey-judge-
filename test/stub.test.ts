@@ -28,9 +28,11 @@ describe('StubProvider', () => {
     expect(r.relevance!.score).toBeLessThan(0.3);
   });
 
-  it('scores a filler non-answer as gibberish and unspecific', async () => {
+  it('scores a filler non-answer as gibberish-ish but below keyboard mash, and unspecific', async () => {
     const r = await score({ answerText: 'good' });
-    expect(r.gibberish!.score).toBeGreaterThan(0.7);
+    const mash = await score({ answerText: 'asdfgh jkjkjk' });
+    expect(r.gibberish!.score).toBeGreaterThan(0.5);
+    expect(r.gibberish!.score).toBeLessThan(mash.gibberish!.score);
     expect(r.specificity!.score).toBeLessThan(0.2);
   });
 

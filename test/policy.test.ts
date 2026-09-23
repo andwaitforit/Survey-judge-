@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { decide, type PolicyContext } from '../src/policy/engine.js';
 import { parseStudyConfig, type StudyConfig } from '../src/policy/config.js';
-import { CHECK_NAMES, type CheckResult } from '../src/policy/types.js';
+import { CHECK_FAMILY, CHECK_NAMES, type CheckResult } from '../src/policy/types.js';
 
 const baseConfig = (overrides: Record<string, unknown> = {}): StudyConfig =>
   parseStudyConfig({
@@ -118,10 +118,21 @@ describe('decide — rule order', () => {
 
   it('replaces when two independent checks trip with confidence above minConfidence', () => {
     let r = withResult(healthy(), { check: 'gibberish', score: 0.95, confidence: 0.97 });
-    r = withResult(r, { check: 'relevance', score: 0.05, confidence: 0.95 });
+    r = withResult(r, { check: 'duplicate', score: 0.95, confidence: 0.95 });
     const d = decide(r, baseConfig(), fresh);
     expect(d.action).toBe('replace');
     expect(d.triggers.filter((t) => t.level === 'replace')).toHaveLength(2);
+  });
+
+  it('does not count correlated checks from the same evidence family as independent', () => {
+    // Keyboard mash trips gibberish and relevance together; that is one line of evidence.
+    let r = withResult(healthy(), { check: 'gibberish', score: 0.99, confidence: 0.99 });
+    r = withResult(r, { check: 'relevance', score: 0.01, confidence: 0.99 });
+    expect(decide(r, baseConfig(), fresh).action).toBe('flag');
+  });
+
+  it('refuses requireChecks above the number of evidence families', () => {
+    expect(() => parseStudyConfig({ studyId: 's', thresholds: { replace: { requireChecks: 5 } } })).toThrow();
   });
 
   it('does not replace on a single check, however confident', () => {
@@ -131,13 +142,13 @@ describe('decide — rule order', () => {
 
   it('does not replace when confidence equals minConfidence (must be strictly above)', () => {
     let r = withResult(healthy(), { check: 'gibberish', score: 0.95, confidence: 0.9 });
-    r = withResult(r, { check: 'relevance', score: 0.05, confidence: 0.9 });
+    r = withResult(r, { check: 'duplicate', score: 0.95, confidence: 0.9 });
     expect(decide(r, baseConfig(), fresh).action).toBe('flag');
   });
 
   it('does not replace when only one of the agreeing checks is confident enough', () => {
     let r = withResult(healthy(), { check: 'gibberish', score: 0.95, confidence: 0.97 });
-    r = withResult(r, { check: 'relevance', score: 0.05, confidence: 0.7 });
+    r = withResult(r, { check: 'duplicate', score: 0.95, confidence: 0.7 });
     expect(decide(r, baseConfig(), fresh).action).toBe('flag');
   });
 
@@ -208,7 +219,7 @@ describe('decide — clarify lifecycle', () => {
 
   it('a re-scored answer is capped at flag even if replace conditions hold', () => {
     let r = withResult(healthy(), { check: 'gibberish', score: 0.95, confidence: 0.97 });
-    r = withResult(r, { check: 'relevance', score: 0.05, confidence: 0.95 });
+    r = withResult(r, { check: 'duplicate', score: 0.95, confidence: 0.95 });
     expect(decide(r, baseConfig(), { isRescore: true, clarifiesUsedInSession: 1 }).action).toBe('flag');
   });
 
@@ -265,7 +276,7 @@ describe('decide — properties', () => {
       if (ctx.isRescore) expect(['keep', 'flag']).toContain(a.recommendedAction);
       if (a.recommendedAction === 'replace') {
         const confident = a.triggers.filter((t) => t.level === 'replace' && t.confidence > 0.9);
-        expect(new Set(confident.map((t) => t.check)).size).toBeGreaterThanOrEqual(2);
+        expect(new Set(confident.map((t) => CHECK_FAMILY[t.check])).size).toBeGreaterThanOrEqual(2);
       }
     }
   });

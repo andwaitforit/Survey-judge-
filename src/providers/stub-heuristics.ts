@@ -21,9 +21,12 @@ const TEMPLATE_PHRASES = [
   'here is a', 'certainly!', 'great question', 'overall, ', 'it is important to note',
 ];
 
-const KEYBOARD_RUNS = ['qwer', 'wert', 'asdf', 'sdfg', 'dfgh', 'fghj', 'ghjk', 'hjkl', 'zxcv', 'xcvb', 'jkl;', 'uiop', 'yuio'];
+const KEYBOARD_RUNS = ['qwer', 'wert', 'asdf', 'sdfg', 'dfgh', 'fghj', 'ghjk', 'hjkl', 'zxcv', 'xcvb', 'uiop', 'yuio'];
+/** Three-letter home/top-row runs that are never English words. */
+const SHORT_RUNS = new Set(['asd', 'sdf', 'dfg', 'fgh', 'ghj', 'hjk', 'jkl', 'qwe', 'wer', 'zxc', 'xcv']);
 
 function isMash(tok: string): boolean {
+  if (SHORT_RUNS.has(tok)) return true;
   if (tok.length < 4 || /^\d+$/.test(tok)) return false;
   if (/(.)\1{2,}/u.test(tok)) return true;
   if (KEYBOARD_RUNS.some((k) => tok.includes(k))) return true;
@@ -62,7 +65,9 @@ export type Scorer = (state: CheckState, s: Signals) => { score: number; certain
 export const SCORERS: Record<CheckName, Scorer> = {
   gibberish: (_state, s) => {
     if (s.words.length === 0) return { score: 0.98 };
-    if (s.filler) return { score: 0.9 };
+    // A filler non-answer ("good") is recoverable, which is what clarify is for. Keyboard mash is not.
+    // So filler sits below mash, and below the PRODUCT.md example flag threshold (0.70).
+    if (s.filler) return { score: 0.65, certainty: 0.9 };
     const short = s.content.length <= 1 ? 0.55 : 0;
     return { score: Math.max(s.mashRatio, short, s.repeatRatio > 0.6 ? 0.8 : 0) };
   },
@@ -77,9 +82,10 @@ export const SCORERS: Record<CheckName, Scorer> = {
     if (s.mashRatio > 0.5) return { score: 0.08 };
     const q = new Set(contentWords(`${state.questionText} ${state.studyContext ?? ''}`).map(stem));
     const overlap = new Set(s.content.map(stem).filter((w) => q.has(w))).size;
+    // Brevity is specificity's job, not relevance's: "price" is a relevant (if thin) answer.
     const base = 0.5 + Math.min(0.25, 0.12 * overlap) + Math.min(0.2, 0.025 * s.content.length);
     // Overlap is a weak proxy for topicality, so the stub is never very sure.
-    return { score: clamp01(base - (s.content.length < 2 ? 0.25 : 0)), certainty: 0.8 };
+    return { score: clamp01(base), certainty: 0.8 };
   },
   coherence: (_state, s) => {
     if (s.words.length === 0) return { score: 0.02 };

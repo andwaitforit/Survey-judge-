@@ -8,3 +8,6 @@ Blockers and open questions for Andrew. Append, do not rewrite.
 - [ ] Branch: the brief says `feat/gate-core`, but the session can only push to `claude/policy-engine-milestones-1kbd4e`. Rename it when you merge.
 - [ ] ARCHITECTURE.md's example response shows `"action": "clarify"` with `"mode": "shadow"`, which contradicts CLAUDE.md rule 4 (shadow returns keep). The agent implemented rule 4 and added `recommendedAction` to the response. Is echoing `recommendedAction` in shadow mode OK, or should it be log-only?
 - [ ] After a clarify, a re-score that is still weak currently resolves to `keep`, by the literal rule order. Should a still-weak re-score be `flag` instead?
+- [ ] "Independent checks" for `replace` is implemented as distinct evidence families (content / consistency / duplicate / boilerplate); see DECISIONS.md. Is that your intent, and are these the right families?
+- [ ] The PRODUCT.md example config has no thresholds for `contradiction` or `boilerplate`, so those checks never act. Should the default study template include them (see `test/fixtures/study-config.recommended.json`)?
+- [ ] Labelling policy for bot farms: pure copy-paste duplicates are one line of evidence, so they reach `flag`, not `replace`. The fixture labels them `replace`. Which is right?

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CHECK_NAMES } from './types.js';
+import { CHECK_NAMES, FAMILY_COUNT } from './types.js';
 
 const unit = z.number().min(0).max(1);
 const checkName = z.enum(CHECK_NAMES);
@@ -19,8 +19,11 @@ export const StudyConfigSchema = z.strictObject({
       flag: checkThresholds.default({}),
       replace: z
         .strictObject({
-          /** Minimum number of distinct checks that must agree. Floor of 2: one check never replaces. */
-          requireChecks: z.number().int().min(2).max(CHECK_NAMES.length).default(2),
+          /**
+           * Minimum number of independent checks (distinct evidence families, see CHECK_FAMILY) that
+           * must agree. Floor of 2: one line of evidence never replaces.
+           */
+          requireChecks: z.number().int().min(2).max(FAMILY_COUNT).default(2),
           /** Each agreeing check needs confidence strictly above this. */
           minConfidence: unit.default(0.9),
           /** Optional stricter per-check thresholds for replace; defaults to the flag thresholds. */
