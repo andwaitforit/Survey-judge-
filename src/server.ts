@@ -21,7 +21,8 @@ const devApiKey = readEnv(env, 'DEV_API_KEY');
 let store: Store;
 let devKey: string | undefined;
 if (databaseUrl) {
-  store = new PrismaStore(databaseUrl);
+  const schema = readEnv(env, 'DATABASE_SCHEMA');
+  store = new PrismaStore(databaseUrl, schema ? { schema } : {});
 } else {
   // No database: an in-memory store with one dev customer. Data is lost on restart, and on a
   // serverless platform each instance has its own memory. Set DEV_API_KEY for a stable key.
