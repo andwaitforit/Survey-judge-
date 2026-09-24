@@ -4,30 +4,34 @@
  */
 import Fastify from 'fastify';
 import { registerRoutes, SERVER_OPTIONS } from './api/app.js';
+import { readEnv } from './env.js';
 import { createProvider } from './providers/factory.js';
 import { newApiKey } from './store/keys.js';
 import { MemoryStore } from './store/memory.js';
 import { PrismaStore } from './store/prisma.js';
 import type { Store } from './store/types.js';
 
-const port = Number(process.env.PORT ?? 3000);
-const host = process.env.HOST ?? '0.0.0.0';
-const provider = createProvider(process.env.PROVIDER ?? 'stub', process.env);
+const env = process.env;
+const port = Number(readEnv(env, 'PORT') ?? 3000);
+const host = readEnv(env, 'HOST') ?? '0.0.0.0';
+const provider = createProvider(readEnv(env, 'PROVIDER'), env);
+const databaseUrl = readEnv(env, 'DATABASE_URL');
+const devApiKey = readEnv(env, 'DEV_API_KEY');
 
 let store: Store;
 let devKey: string | undefined;
-if (process.env.DATABASE_URL) {
-  store = new PrismaStore(process.env.DATABASE_URL);
+if (databaseUrl) {
+  store = new PrismaStore(databaseUrl);
 } else {
   // No database: an in-memory store with one dev customer. Data is lost on restart, and on a
   // serverless platform each instance has its own memory. Set DEV_API_KEY for a stable key.
   const mem = new MemoryStore();
-  devKey = process.env.DEV_API_KEY ?? newApiKey();
+  devKey = devApiKey ?? newApiKey();
   mem.addApiKey(devKey, { id: 'dev', name: 'dev', retentionDays: 90 });
   store = mem;
 }
 
-const app = Fastify({ ...SERVER_OPTIONS, logger: { level: process.env.LOG_LEVEL ?? 'info' } });
+const app = Fastify({ ...SERVER_OPTIONS, logger: { level: readEnv(env, 'LOG_LEVEL') ?? 'info' } });
 registerRoutes(app, { store, provider });
 app.addHook('onClose', () => store.close());
 
@@ -39,7 +43,7 @@ app.listen({ port, host }, (err) => {
   app.log.info({ provider: provider.name, modelVersion: provider.modelVersion }, 'provider ready');
   if (devKey) {
     app.log.warn(
-      process.env.DEV_API_KEY
+      devApiKey
         ? 'No DATABASE_URL: using the in-memory store with DEV_API_KEY.'
         : `No DATABASE_URL: using the in-memory store. Dev API key: ${devKey}`,
     );
