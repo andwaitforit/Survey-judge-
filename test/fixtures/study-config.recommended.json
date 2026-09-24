@@ -1,0 +1,14 @@
+{
+  "studyId": "eval-recommended",
+  "mode": "shadow",
+  "thresholds": {
+    "clarify": { "relevance": 0.55, "specificity": 0.45 },
+    "flag": { "relevance": 0.3, "gibberish": 0.7, "duplicate": 0.85, "contradiction": 0.7, "boilerplate": 0.8 },
+    "replace": { "requireChecks": 2, "minConfidence": 0.9 }
+  },
+  "clarifyPrompts": {
+    "relevance": "Could you say a bit more about how that relates to the question?",
+    "specificity": "Could you give a specific example or detail?"
+  },
+  "maxClarifyPerSession": 2
+}

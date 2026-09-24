@@ -1,0 +1,14 @@
+{
+  "_note": "HYPOTHETICAL. Hand-written from third-party descriptions of the Jev response shape, NOT recorded from the real API. TODO(jev-api): replace with a real recorded response.",
+  "model": "jev-fixture",
+  "answers": {
+    "__CHECK__": {
+      "type": "score",
+      "score": 3,
+      "confidence": 0.87,
+      "probabilities": { "0": 0.01, "1": 0.02, "2": 0.1, "3": 0.8, "4": 0.07 },
+      "legend": { "0": "clearly no", "1": "mostly no", "2": "unclear", "3": "mostly yes", "4": "clearly yes" }
+    }
+  },
+  "usage": { "input_tokens": 212, "output_tokens": 0 }
+}
