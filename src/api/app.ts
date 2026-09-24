@@ -41,8 +41,17 @@ function apiKeyFrom(req: FastifyRequest): string | undefined {
   return typeof x === 'string' ? x : undefined;
 }
 
+/** Fastify server options shared by tests (`buildApp`) and the deployed entrypoint (`src/server.ts`). */
+export const SERVER_OPTIONS = { bodyLimit: 5 * 1024 * 1024 } as const;
+
 export function buildApp(opts: AppOptions): FastifyInstance {
-  const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 5 * 1024 * 1024 });
+  const app = Fastify({ ...SERVER_OPTIONS, logger: opts.logger ?? false });
+  registerRoutes(app, opts);
+  return app;
+}
+
+/** Mount every route on an existing Fastify instance. */
+export function registerRoutes(app: FastifyInstance, opts: AppOptions): void {
   const { store, provider } = opts;
   const scoreBudgetMs = opts.scoreBudgetMs ?? 450;
   const batchItemBudgetMs = opts.batchItemBudgetMs ?? 5000;
@@ -139,6 +148,4 @@ export function buildApp(opts: AppOptions): FastifyInstance {
       return reply.code(201).send(await store.configs.save(req.customer!.id, parsed.data));
     });
   }, { prefix: '/v1' });
-
-  return app;
 }

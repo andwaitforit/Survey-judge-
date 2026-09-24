@@ -33,5 +33,20 @@ export interface DecisionProvider {
   scoreBatch(req: CheckRequest, opts: ScoreOptions): Promise<CheckResult[]>;
 }
 
-/** Shared by HTTP-backed providers so tests can inject a fake and never touch the network. */
-export type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
+/**
+ * The slice of fetch that HTTP-backed providers use, typed locally rather than via DOM/undici
+ * globals, whose availability depends on the compiler's lib settings (Vercel's build differs from
+ * ours). Tests inject a fake and never touch the network. Global `fetch` satisfies it.
+ */
+export interface FetchInit {
+  method: 'POST';
+  headers: Record<string, string>;
+  body: string;
+  signal: AbortSignal;
+}
+export interface FetchResponseLike {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}
+export type FetchLike = (input: string, init: FetchInit) => Promise<FetchResponseLike>;
