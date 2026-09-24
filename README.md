@@ -33,6 +33,27 @@ pnpm dev
 pnpm test:pg                          # store contract tests against that database
 ```
 
+### Supabase (hosted)
+
+The tables live in the `survey_judge` schema of the Supabase project `xchjeptiijvmbuyabket`
+(formerly SignalGraph, being repurposed). Row-level security is on with no policies, so only the
+`postgres` role Prisma uses can read them; the Data API roles cannot. On Vercel, set:
+
+```
+DATABASE_URL=<Supabase → Connect → Transaction pooler URI, port 6543, with your DB password>
+DATABASE_SCHEMA=survey_judge
+```
+
+Run later migrations and mint keys from your machine with the **session** pooler (port 5432),
+because `prisma migrate` needs a session connection:
+
+```bash
+DATABASE_URL="<session pooler URI>?schema=survey_judge" pnpm db:migrate
+DATABASE_URL="<session pooler URI>" DATABASE_SCHEMA=survey_judge pnpm db:seed --customer acme
+```
+
+`vercel.json` pins the function to `pdx1` (Oregon), next to the database in us-west-2.
+
 ## Providers
 
 Set with `PROVIDER` (server) or `--provider` (eval). See `.env.example`.

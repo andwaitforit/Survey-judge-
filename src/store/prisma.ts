@@ -30,8 +30,18 @@ function toRecord(r: DecisionRow): DecisionRecord {
 export class PrismaStore implements Store {
   readonly db: PrismaClient;
 
-  constructor(connectionString: string) {
-    this.db = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  /**
+   * @param schema Postgres schema holding the tables (default: the connection's search_path,
+   *   usually `public`). On Supabase we use a dedicated `survey_judge` schema.
+   * @param maxConnections Pool size per process. Keep it small on serverless, where every
+   *   instance has its own pool; point the URL at a transaction-mode pooler (e.g. Supavisor :6543).
+   */
+  constructor(connectionString: string, opts: { schema?: string; maxConnections?: number } = {}) {
+    const adapter = new PrismaPg(
+      { connectionString, max: opts.maxConnections ?? 5 },
+      opts.schema ? { schema: opts.schema } : undefined,
+    );
+    this.db = new PrismaClient({ adapter });
   }
 
   readonly apiKeys = {

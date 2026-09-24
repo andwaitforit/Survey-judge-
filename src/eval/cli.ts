@@ -33,7 +33,7 @@ async function main(): Promise<void> {
   const config = values.config
     ? parseStudyConfig(JSON.parse(readFileSync(values.config, 'utf8')))
     : DEFAULT_EVAL_CONFIG;
-  const provider = createProvider(values.provider ?? 'stub', process.env);
+  const provider = createProvider(values.provider, process.env);
   const result = await runEval(rows, provider, config, { timeoutMs: Number(values['timeout-ms']) });
   if (values.json) {
     process.stdout.write(`${JSON.stringify({ ...result, predictions: undefined }, null, 2)}\n`);

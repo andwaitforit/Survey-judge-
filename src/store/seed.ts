@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
+import { readEnv } from '../env.js';
 import { hashApiKey, newApiKey } from './keys.js';
 import { PrismaStore } from './prisma.js';
 
@@ -12,9 +13,10 @@ async function main(): Promise<void> {
       'retention-days': { type: 'string', default: '90' },
     },
   });
-  const url = process.env.DATABASE_URL;
+  const url = readEnv(process.env, 'DATABASE_URL');
   if (!url) throw new Error('DATABASE_URL is required');
-  const store = new PrismaStore(url);
+  const schema = readEnv(process.env, 'DATABASE_SCHEMA');
+  const store = new PrismaStore(url, schema ? { schema } : {});
   try {
     const id = values.customer!;
     await store.db.customer.upsert({

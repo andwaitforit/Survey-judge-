@@ -1,3 +1,4 @@
+import { defaultFetch } from './http.js';
 import { z } from 'zod';
 import type { CheckName, CheckResult } from '../policy/types.js';
 import { clamp01, settleWithin } from './parallel.js';
@@ -53,7 +54,7 @@ export class LlmProvider implements DecisionProvider {
 
   constructor(private readonly opts: LlmProviderOptions) {
     this.modelVersion = opts.model;
-    this.fetch = opts.fetch ?? ((input, init) => fetch(input, init));
+    this.fetch = opts.fetch ?? defaultFetch;
   }
 
   async scoreBatch(req: CheckRequest, { timeoutMs }: ScoreOptions): Promise<CheckResult[]> {

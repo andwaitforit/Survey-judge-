@@ -40,4 +40,10 @@ describe('Jev adapter (TODO(jev-api): unverified shape)', () => {
     expect(() => createProvider('llm', {})).toThrow(/LLM_BASE_URL/);
     expect(createProvider('stub', {}).name).toBe('stub');
   });
+
+  it('treats an empty provider name or empty env values as unset (Vercel env vars saved blank)', () => {
+    expect(createProvider('', {}).name).toBe('stub');
+    expect(createProvider(undefined, {}).name).toBe('stub');
+    expect(() => createProvider('llm', { LLM_BASE_URL: '  ', LLM_MODEL: 'm' })).toThrow(/LLM_BASE_URL/);
+  });
 });

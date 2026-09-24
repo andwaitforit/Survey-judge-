@@ -1,3 +1,4 @@
+import { defaultFetch } from '../http.js';
 import type { CheckResult } from '../../policy/types.js';
 import { clamp01, settleWithin } from '../parallel.js';
 import { rubric } from '../prompts.js';
@@ -27,7 +28,7 @@ export class JevProvider implements DecisionProvider {
 
   constructor(private readonly opts: JevProviderOptions) {
     this.modelVersion = `${opts.model} (unverified adapter)`;
-    this.fetch = opts.fetch ?? ((input, init) => fetch(input, init));
+    this.fetch = opts.fetch ?? defaultFetch;
   }
 
   async scoreBatch(req: CheckRequest, { timeoutMs }: ScoreOptions): Promise<CheckResult[]> {

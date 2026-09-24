@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LlmProvider, extractVerdict, systemPrompt } from '../src/providers/llm.js';
 import type { CheckName } from '../src/policy/types.js';
 import { fakeFetch } from './helpers/fake-fetch.js';
+import type { FetchInit } from '../src/providers/types.js';
 
 const state = {
   questionText: 'Why did you choose Brand X?',
@@ -44,7 +45,7 @@ describe('LlmProvider', () => {
     (body as { messages: { content: string }[] }).messages[0]!.content.match(/^Check: (\w+)$/m)![1] as CheckName;
 
   it('sends one parallel request per check with auth and puts untrusted text in tags', async () => {
-    const calls: { url: string; init: RequestInit; body: unknown }[] = [];
+    const calls: { url: string; init: FetchInit; body: unknown }[] = [];
     const p = new LlmProvider({
       baseUrl: 'http://llm.invalid/v1/',
       model: 'm',
@@ -56,7 +57,7 @@ describe('LlmProvider', () => {
     expect(out).toHaveLength(2);
     expect(calls).toHaveLength(2);
     expect(calls[0]!.url).toBe('http://llm.invalid/v1/chat/completions');
-    expect((calls[0]!.init.headers as Record<string, string>).authorization).toBe('Bearer k');
+    expect(calls[0]!.init.headers.authorization).toBe('Bearer k');
     const bodies = calls.map((c) => c.body as { messages: { content: string }[]; response_format?: unknown });
     expect(bodies[0]!.response_format).toEqual({ type: 'json_object' });
     const user = bodies.map((b) => b.messages[1]!.content);
